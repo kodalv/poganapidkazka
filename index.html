@@ -116,24 +116,33 @@
             top: 20px;
             right: 20px;
             z-index: 20;
-            opacity: 0;
-            transition: opacity 0.25s ease;
+            width: 238px;
+            max-width: calc(100vw - 24px);
         }
 
-        .admin-menu:hover,
-        .admin-menu:focus-within {
-            opacity: 1;
-        }
-
-        .admin-menu::before {
-            content: "";
+        .menu-hotspot {
             position: absolute;
-            inset: -14px;
+            top: -6px;
+            right: -6px;
+            width: 52px;
+            height: 52px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            opacity: 0;
+            z-index: 2;
+        }
+
+        .menu-hotspot:focus-visible {
+            opacity: 1;
+            outline: 2px solid rgba(255, 255, 255, 0.45);
+            outline-offset: 4px;
         }
 
         .menu-content {
             position: relative;
-            min-width: 238px;
+            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 11px;
@@ -147,6 +156,32 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.11),
                 0 18px 54px rgba(0, 0, 0, 0.56);
             backdrop-filter: blur(22px) saturate(1.18);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px) scale(0.98);
+            transform-origin: top right;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .admin-menu.open .menu-content {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .admin-menu:hover .menu-content,
+            .admin-menu:focus-within .menu-content {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateY(0) scale(1);
+            }
+
+            .admin-menu::before {
+                content: "";
+                position: absolute;
+                inset: -14px;
+            }
         }
 
         .menu-content button {
@@ -446,6 +481,7 @@
             .admin-menu {
                 top: 12px;
                 right: 12px;
+                width: min(238px, calc(100vw - 24px));
             }
 
             .grid {
@@ -469,7 +505,8 @@
             <h1>Пога<br>Напід<br>Казка</h1>
         </header>
 
-        <div class="admin-menu">
+        <div class="admin-menu" id="adminMenu">
+            <button class="menu-hotspot" type="button" aria-label="Відкрити меню" onclick="toggleMenu(event)"></button>
             <div class="menu-content">
                 <span class="menu-label">Меню</span>
                 <div class="role-switch" aria-label="Роль">
@@ -526,6 +563,7 @@
         const grid = document.getElementById('grid');
         const captainGrid = document.getElementById('captainGrid');
         const captainPanel = document.getElementById('captainPanel');
+        const adminMenu = document.getElementById('adminMenu');
         const mainBody = document.getElementById('mainBody');
         const stage = document.getElementById('stage');
         const startBtn = document.getElementById('startBtn');
@@ -546,6 +584,7 @@
         window.resetGame = resetGame;
         window.setRole = setRole;
         window.copyRoomLink = copyRoomLink;
+        window.toggleMenu = toggleMenu;
 
         function createEmptyState() {
             return {
@@ -745,6 +784,11 @@
             }
         }
 
+        function toggleMenu(event) {
+            event.stopPropagation();
+            adminMenu.classList.toggle('open');
+        }
+
         function showCopiedState(button) {
             if (!button) return;
 
@@ -759,6 +803,18 @@
                 button.disabled = false;
             }, 1200);
         }
+
+        document.addEventListener('click', event => {
+            if (!adminMenu.classList.contains('open')) return;
+            if (adminMenu.contains(event.target)) return;
+            adminMenu.classList.remove('open');
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                adminMenu.classList.remove('open');
+            }
+        });
 
         initOnlineRoom().catch(error => {
             setupNotice.classList.add('visible');
