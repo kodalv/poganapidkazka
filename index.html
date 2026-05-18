@@ -118,20 +118,22 @@
             z-index: 20;
             width: 238px;
             max-width: calc(100vw - 24px);
+            pointer-events: none;
         }
 
         .menu-hotspot {
             position: absolute;
             top: -6px;
             right: -6px;
-            width: 52px;
-            height: 52px;
+            width: 34px;
+            height: 34px;
             padding: 0;
             border: 0;
             background: transparent;
             box-shadow: none;
             opacity: 0;
             z-index: 2;
+            pointer-events: auto;
         }
 
         .menu-hotspot:focus-visible {
@@ -169,6 +171,10 @@
             transform: translateY(0) scale(1);
         }
 
+        .admin-menu.open {
+            pointer-events: auto;
+        }
+
         @media (hover: hover) and (pointer: fine) {
             .admin-menu:hover .menu-content,
             .admin-menu:focus-within .menu-content {
@@ -181,6 +187,7 @@
                 content: "";
                 position: absolute;
                 inset: -14px;
+                pointer-events: auto;
             }
         }
 
@@ -382,6 +389,7 @@
         }
 
         .game-active .player-grid .card input {
+            color: white;
             pointer-events: none;
         }
 
