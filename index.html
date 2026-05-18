@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Words Online</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;500;700&display=swap');
+
+        :root {
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.14);
+            --red: #ff4b2b;
+            --blue: #00d2ff;
+            --neutral: #e0e0e0;
+            --panel: rgba(14, 14, 24, 0.78);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(0, 210, 255, 0.18), transparent 34rem),
+                radial-gradient(circle at bottom left, rgba(255, 75, 43, 0.18), transparent 30rem),
+                #0f0f1a;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            min-height: 40px;
+            padding: 0 14px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.07);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        button:disabled {
+            opacity: 0.48;
+            cursor: not-allowed;
+        }
+
+        .app {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel,
+        .notice {
+            background: var(--panel);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            backdrop-filter: blur(14px);
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 132px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: 'Unbounded', sans-serif;
+            font-size: clamp(2.1rem, 7vw, 4.6rem);
+            line-height: 0.9;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, #ffffff 0%, #b9b9c8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.18));
+        }
+
+        .room-label,
+        .status,
+        .helper {
+            color: #aeb2c4;
+            font-size: 0.86rem;
+        }
+
+        .admin-menu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .admin-menu:hover,
+        .admin-menu:focus-within {
+            opacity: 1;
+        }
+
+        .admin-menu::before {
+            content: "";
+            position: absolute;
+            inset: -14px;
+        }
+
+        .menu-content {
+            position: relative;
+            min-width: 190px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(16, 16, 27, 0.92);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            box-shadow: 0 16px 44px rgba(0, 0, 0, 0.52);
+            backdrop-filter: blur(16px);
+        }
+
+        .menu-content button {
+            width: 100%;
+        }
+
+        .menu-label {
+            color: #666d83;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .primary {
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            border: none;
+            font-weight: 800;
+        }
+
+        .danger {
+            color: #ffb4a8;
+        }
+
+        .role-switch {
+            display: inline-flex;
+            width: 100%;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .role-switch button {
+            flex: 1;
+            width: auto;
+            min-width: 94px;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .role-switch button.active {
+            background: white;
+            color: #111;
+            font-weight: 800;
+        }
+
+        .notice {
+            display: none;
+            padding: 12px 14px;
+            color: #ffd7cf;
+            line-height: 1.45;
+        }
+
+        .notice.visible {
+            display: block;
+        }
+
+        .stage {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .stage.captain {
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+            align-items: start;
+        }
+
+        .panel {
+            padding: 16px;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .panel-title h2 {
+            margin: 0;
+            font-size: 0.88rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #b9bdd0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(92px, 1fr));
+            gap: 10px;
+        }
+
+        .card,
+        .captain-card {
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card {
+            aspect-ratio: 1.55 / 1;
+            min-height: 72px;
+            background: var(--glass);
+            padding: 8px;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+
+        .card input,
+        .captain-card span {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+        }
+
+        .card input {
+            font-size: clamp(0.82rem, 1.4vw, 1.05rem);
+        }
+
+        .card.red,
+        .captain-card.red {
+            background: rgba(255, 75, 43, 0.28);
+            border-color: var(--red);
+        }
+
+        .card.blue,
+        .captain-card.blue {
+            background: rgba(0, 210, 255, 0.28);
+            border-color: var(--blue);
+        }
+
+        .card.neutral,
+        .captain-card.neutral {
+            background: rgba(224, 224, 224, 0.48);
+            border-color: var(--neutral);
+        }
+
+        .card.neutral input,
+        .captain-card.neutral span {
+            color: #111;
+        }
+
+        .card.black,
+        .captain-card.black {
+            background: rgba(0, 0, 0, 0.76);
+            border-color: var(--red);
+        }
+
+        .game-active .player-grid .card {
+            background: rgba(255, 255, 255, 0.045);
+            border-color: var(--glass-border);
+        }
+
+        .game-active .player-grid .card input {
+            pointer-events: none;
+        }
+
+        .game-active .player-grid .card.revealed.red {
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+            box-shadow: 0 0 24px rgba(255, 75, 43, 0.36);
+        }
+
+        .game-active .player-grid .card.revealed.blue {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            box-shadow: 0 0 24px rgba(0, 210, 255, 0.36);
+        }
+
+        .game-active .player-grid .card.revealed.neutral {
+            background: #e0e0e0;
+        }
+
+        .game-active .player-grid .card.revealed.neutral input {
+            color: #111;
+        }
+
+        .game-active .player-grid .card.revealed.black {
+            background: #000;
+            border-color: var(--red);
+            box-shadow: 0 0 28px rgba(255, 0, 0, 0.42);
+        }
+
+        .captain-panel {
+            display: none;
+        }
+
+        .captain-panel.visible {
+            display: block;
+        }
+
+        .captain-grid {
+            grid-template-columns: repeat(5, minmax(46px, 1fr));
+            gap: 7px;
+        }
+
+        .captain-card {
+            aspect-ratio: 1.18 / 1;
+            min-height: 56px;
+            padding: 5px;
+        }
+
+        .captain-card span {
+            font-size: 0.72rem;
+            line-height: 1.15;
+        }
+
+        .captain-card.played {
+            opacity: 0.48;
+            filter: grayscale(0.25);
+        }
+
+        .captain-card.played span {
+            text-decoration: line-through;
+            text-decoration-thickness: 3px;
+            text-decoration-color: rgba(255, 255, 255, 0.88);
+        }
+
+        .captain-card.played.neutral span {
+            text-decoration-color: rgba(0, 0, 0, 0.72);
+        }
+
+        .captain-card.played::after {
+            content: "";
+            position: absolute;
+            inset: 7px;
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .helper {
+            margin: 10px 0 0;
+            color: #8d92a8;
+        }
+
+        @media (max-width: 920px) {
+            body {
+                padding: 12px;
+            }
+
+            .brand {
+                align-items: center;
+                min-height: 104px;
+            }
+
+            .admin-menu {
+                top: 12px;
+                right: 12px;
+            }
+
+            .stage.captain {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: repeat(5, minmax(56px, 1fr));
+                gap: 7px;
+            }
+
+            .card {
+                min-height: 54px;
+                padding: 4px;
+            }
+
+            .card input {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body id="mainBody">
+    <main class="app">
+        <header class="brand">
+            <h1>Пога<br>Напід<br>Казка</h1>
+        </header>
+
+        <div class="admin-menu">
+            <div class="menu-content">
+                <span class="menu-label">Меню</span>
+                <div class="role-switch" aria-label="Роль">
+                    <button id="playerRoleBtn" type="button" onclick="setRole('player')">Гравець</button>
+                    <button id="captainRoleBtn" type="button" onclick="setRole('captain')">Капітан</button>
+                </div>
+                <button class="primary" id="startBtn" type="button" onclick="handleStart()">Почати гру</button>
+                <button type="button" onclick="enableEditor()">Редагувати</button>
+                <button type="button" onclick="copyRoomLink('player')">Лінк гравця</button>
+                <button type="button" onclick="copyRoomLink('captain')">Лінк капітана</button>
+                <button class="danger" type="button" onclick="resetGame()">Очистити</button>
+            </div>
+        </div>
+
+        <div class="notice" id="setupNotice"></div>
+
+        <section class="stage" id="stage">
+            <section class="panel">
+                <div class="panel-title">
+                    <h2>Поле гравців</h2>
+                    <div class="status" id="playerStatus"></div>
+                </div>
+                <div class="grid player-grid" id="grid"></div>
+                <p class="helper" id="editHint">У режимі редагування натискай на картку, щоб змінити її колір. Після старту натискання відкриває слово для всіх.</p>
+            </section>
+
+            <aside class="panel captain-panel" id="captainPanel">
+                <div class="panel-title">
+                    <h2>Поле капітанів</h2>
+                    <div class="status" id="captainStatus"></div>
+                </div>
+                <div class="grid captain-grid" id="captainGrid"></div>
+                <p class="helper">Капітани бачать кольори завжди. Слова, які вже зіграні на полі гравців, автоматично закреслюються.</p>
+            </aside>
+        </section>
+    </main>
+
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyCruWcqmqgNe9fJVUIAED9EwAcwkX2gDfo",
+            authDomain: "code-words-b22d5.firebaseapp.com",
+            databaseURL: "https://code-words-b22d5-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "code-words-b22d5",
+            storageBucket: "code-words-b22d5.firebasestorage.app",
+            messagingSenderId: "91112864757",
+            appId: "1:91112864757:web:89ea16b13c058e8bchbbebc"
+        };
+
+        const params = new URLSearchParams(location.search);
+        const roomId = 'main';
+        let role = params.get('role') === 'captain' ? 'captain' : 'player';
+        const colors = ['default', 'red', 'blue', 'neutral', 'black'];
+        const firebaseIsConfigured = !Object.values(firebaseConfig).some(value => value.startsWith('PASTE_'));
+
+        const grid = document.getElementById('grid');
+        const captainGrid = document.getElementById('captainGrid');
+        const captainPanel = document.getElementById('captainPanel');
+        const mainBody = document.getElementById('mainBody');
+        const stage = document.getElementById('stage');
+        const startBtn = document.getElementById('startBtn');
+        const playerStatus = document.getElementById('playerStatus');
+        const captainStatus = document.getElementById('captainStatus');
+        const setupNotice = document.getElementById('setupNotice');
+
+        let db = null;
+        let roomRef = null;
+        let state = createEmptyState();
+        let isRendering = false;
+        let wordSaveTimers = {};
+        let serverTimestamp = () => Date.now();
+        let firebaseApi = null;
+
+        window.handleStart = handleStart;
+        window.enableEditor = enableEditor;
+        window.resetGame = resetGame;
+        window.setRole = setRole;
+        window.copyRoomLink = copyRoomLink;
+
+        function createEmptyState() {
+            return {
+                isGameMode: false,
+                updatedAt: Date.now(),
+                cards: Array.from({ length: 25 }, () => ({
+                    word: '',
+                    colorIndex: 0,
+                    revealed: false
+                }))
+            };
+        }
+
+        function normalizeState(nextState = {}) {
+            const fallback = createEmptyState();
+            const cards = Array.isArray(nextState.cards) ? nextState.cards : [];
+
+            return {
+                isGameMode: Boolean(nextState.isGameMode),
+                updatedAt: nextState.updatedAt || Date.now(),
+                cards: fallback.cards.map((card, index) => ({
+                    word: String(cards[index]?.word || card.word),
+                    colorIndex: Math.max(0, Math.min(colors.length - 1, Number(cards[index]?.colorIndex || 0))),
+                    revealed: Boolean(cards[index]?.revealed)
+                }))
+            };
+        }
+
+        function roomPath() {
+            return `rooms/${roomId}`;
+        }
+
+        async function initOnlineRoom() {
+            if (!firebaseIsConfigured) {
+                setupNotice.classList.add('visible');
+                setupNotice.textContent = 'Firebase ще не повністю підключений. Перевір firebaseConfig і додай databaseURL з Realtime Database.';
+                render();
+                return;
+            }
+
+            const appModule = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+            const databaseModule = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js');
+            firebaseApi = databaseModule;
+            serverTimestamp = databaseModule.serverTimestamp;
+
+            const app = appModule.initializeApp(firebaseConfig);
+            db = databaseModule.getDatabase(app);
+            roomRef = databaseModule.ref(db, roomPath());
+
+            const snapshot = await firebaseApi.get(roomRef);
+            if (!snapshot.exists()) {
+                await firebaseApi.set(roomRef, {
+                    ...createEmptyState(),
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+            }
+
+            firebaseApi.onValue(roomRef, snapshotValue => {
+                state = normalizeState(snapshotValue.val());
+                render();
+            });
+        }
+
+        function render() {
+            isRendering = true;
+            mainBody.classList.toggle('game-active', state.isGameMode);
+            stage.classList.toggle('captain', role === 'captain');
+            captainPanel.classList.toggle('visible', role === 'captain');
+            startBtn.style.display = state.isGameMode ? 'none' : 'inline-flex';
+            document.getElementById('playerRoleBtn').classList.toggle('active', role === 'player');
+            document.getElementById('captainRoleBtn').classList.toggle('active', role === 'captain');
+            playerStatus.textContent = firebaseIsConfigured ? (state.isGameMode ? 'Гра триває онлайн' : 'Редагування онлайн') : 'Очікує Firebase';
+            captainStatus.textContent = `${state.cards.filter(card => card.revealed).length}/25 зіграно`;
+
+            grid.innerHTML = '';
+            captainGrid.innerHTML = '';
+
+            state.cards.forEach((card, index) => {
+                grid.appendChild(createPlayerCard(card, index));
+                captainGrid.appendChild(createCaptainCard(card));
+            });
+
+            isRendering = false;
+        }
+
+        function createPlayerCard(cardData, index) {
+            const card = document.createElement('div');
+            card.className = `card ${colors[cardData.colorIndex]}`;
+            if (cardData.revealed) card.classList.add('revealed');
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = cardData.word;
+            input.placeholder = '...';
+            input.disabled = state.isGameMode || !firebaseIsConfigured;
+            input.addEventListener('click', event => event.stopPropagation());
+            input.addEventListener('input', () => {
+                state.cards[index].word = input.value;
+                queueWordSave(index, input.value);
+            });
+
+            card.appendChild(input);
+            card.addEventListener('click', () => {
+                if (!firebaseIsConfigured) return;
+
+                if (!state.isGameMode) {
+                    updateCard(index, {
+                        colorIndex: (state.cards[index].colorIndex + 1) % colors.length
+                    });
+                } else if (state.cards[index].word.trim()) {
+                    updateCard(index, { revealed: true });
+                }
+            });
+
+            return card;
+        }
+
+        function createCaptainCard(cardData) {
+            const card = document.createElement('div');
+            card.className = `captain-card ${colors[cardData.colorIndex]}`;
+            if (cardData.revealed) card.classList.add('played');
+
+            const word = document.createElement('span');
+            word.textContent = cardData.word || '???';
+            card.appendChild(word);
+            return card;
+        }
+
+        function queueWordSave(index, word) {
+            if (!firebaseIsConfigured || isRendering) return;
+            clearTimeout(wordSaveTimers[index]);
+            wordSaveTimers[index] = setTimeout(() => {
+                updateCard(index, { word });
+            }, 220);
+        }
+
+        async function updateCard(index, patch) {
+            if (!roomRef) return;
+
+            const updates = {};
+            Object.entries(patch).forEach(([key, value]) => {
+                updates[`cards/${index}/${key}`] = value;
+            });
+            updates.updatedAt = serverTimestamp();
+
+            await firebaseApi.update(roomRef, updates);
+        }
+
+        async function handleStart() {
+            if (!roomRef) return;
+            await firebaseApi.update(roomRef, {
+                isGameMode: true,
+                updatedAt: serverTimestamp()
+            });
+        }
+
+        async function enableEditor() {
+            if (!roomRef) return;
+
+            const updates = {
+                isGameMode: false,
+                updatedAt: serverTimestamp()
+            };
+            state.cards.forEach((_, index) => {
+                updates[`cards/${index}/revealed`] = false;
+            });
+
+            await firebaseApi.update(roomRef, updates);
+        }
+
+        async function resetGame() {
+            if (!roomRef || !confirm('Скинути кімнату?')) return;
+
+            await firebaseApi.set(roomRef, {
+                ...createEmptyState(),
+                updatedAt: serverTimestamp()
+            });
+        }
+
+        function setRole(nextRole) {
+            role = nextRole;
+            params.set('role', role);
+            history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
+            render();
+        }
+
+        async function copyRoomLink(linkRole) {
+            const url = new URL(location.href);
+            url.searchParams.set('role', linkRole);
+
+            try {
+                await navigator.clipboard.writeText(url.toString());
+                alert(linkRole === 'captain' ? 'Лінк капітана скопійовано' : 'Лінк гравця скопійовано');
+            } catch {
+                prompt('Лінк кімнати:', url.toString());
+            }
+        }
+
+        initOnlineRoom().catch(error => {
+            setupNotice.classList.add('visible');
+            setupNotice.textContent = `Firebase помилка: ${error.message}`;
+            render();
+        });
+    </script>
+</body>
+</html>
