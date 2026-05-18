@@ -42,6 +42,9 @@
         }
 
         button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             min-height: 40px;
             padding: 0 14px;
             border: 1px solid var(--glass-border);
@@ -49,6 +52,8 @@
             color: white;
             border-radius: 8px;
             cursor: pointer;
+            line-height: 1;
+            text-align: center;
             transition: 0.2s ease;
         }
 
@@ -91,7 +96,7 @@
             margin: 0;
             font-family: 'Unbounded', sans-serif;
             font-size: clamp(2.1rem, 7vw, 4.6rem);
-            line-height: 0.9;
+            line-height: 1.04;
             text-transform: uppercase;
             background: linear-gradient(180deg, #ffffff 0%, #b9b9c8 100%);
             -webkit-background-clip: text;
@@ -141,7 +146,10 @@
         }
 
         .menu-content button {
+            height: 49px;
             width: 100%;
+            font-size: 1.02rem;
+            font-weight: 700;
         }
 
         .menu-label {
@@ -173,10 +181,12 @@
 
         .role-switch button {
             flex: 1;
+            height: 49px;
             width: auto;
             min-width: 94px;
             border: 0;
             border-radius: 0;
+            line-height: 1;
         }
 
         .role-switch button.active {
