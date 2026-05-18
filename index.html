@@ -446,11 +446,9 @@
         <section class="stage" id="stage">
             <section class="panel">
                 <div class="panel-title">
-                    <h2>Поле гравців</h2>
-                    <div class="status" id="playerStatus"></div>
+                    <h2 id="playerPanelTitle">Поле гравців</h2>
                 </div>
                 <div class="grid player-grid" id="grid"></div>
-                <p class="helper" id="editHint">У режимі редагування натискай на картку, щоб змінити її колір. Після старту натискання відкриває слово для всіх.</p>
             </section>
 
             <aside class="panel captain-panel" id="captainPanel">
@@ -459,7 +457,6 @@
                     <div class="status" id="captainStatus"></div>
                 </div>
                 <div class="grid captain-grid" id="captainGrid"></div>
-                <p class="helper">Капітани бачать кольори завжди. Слова, які вже зіграні на полі гравців, автоматично закреслюються.</p>
             </aside>
         </section>
     </main>
@@ -487,7 +484,7 @@
         const mainBody = document.getElementById('mainBody');
         const stage = document.getElementById('stage');
         const startBtn = document.getElementById('startBtn');
-        const playerStatus = document.getElementById('playerStatus');
+        const playerPanelTitle = document.getElementById('playerPanelTitle');
         const captainStatus = document.getElementById('captainStatus');
         const setupNotice = document.getElementById('setupNotice');
 
@@ -576,7 +573,7 @@
             startBtn.style.display = state.isGameMode ? 'none' : 'inline-flex';
             document.getElementById('playerRoleBtn').classList.toggle('active', role === 'player');
             document.getElementById('captainRoleBtn').classList.toggle('active', role === 'captain');
-            playerStatus.textContent = firebaseIsConfigured ? (state.isGameMode ? 'Гра триває онлайн' : 'Редагування онлайн') : 'Очікує Firebase';
+            playerPanelTitle.style.display = role === 'captain' ? 'block' : 'none';
             captainStatus.textContent = `${state.cards.filter(card => card.revealed).length}/25 зіграно`;
 
             grid.innerHTML = '';
