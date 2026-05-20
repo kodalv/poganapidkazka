@@ -400,6 +400,11 @@
             cursor: default;
         }
 
+        .game-active .player-grid .card input {
+            color: white;
+            pointer-events: none;
+        }
+
         .game-active .player-grid .card.revealed.red {
             background: linear-gradient(135deg, #ff4b2b, #ff416c);
             box-shadow: 0 0 24px rgba(255, 75, 43, 0.36);
@@ -543,13 +548,13 @@
                     <button id="captainRoleBtn" type="button" onclick="setRole('captain')">Капітан</button>
                 </div>
                 <button class="primary" id="startBtn" type="button" onclick="handleStart()">Почати гру</button>
-                <button id="editBtn" type="button" onclick="enableEditor()">Редагувати</button>
+                <button type="button" onclick="enableEditor()">Редагувати</button>
                 <div class="link-switch" aria-label="Копіювати лінк">
                     <button type="button" onclick="copyRoomLink('player', this)">Лінк гравця</button>
                     <button type="button" onclick="copyRoomLink('editor', this)">Лінк редактора</button>
                     <button type="button" onclick="copyRoomLink('captain', this)">Лінк капітана</button>
                 </div>
-                <button id="resetBtn" class="danger" type="button" onclick="resetGame()">Очистити</button>
+                <button class="danger" type="button" onclick="resetGame()">Очистити</button>
             </div>
         </div>
 
@@ -598,8 +603,6 @@
         const mainBody = document.getElementById('mainBody');
         const stage = document.getElementById('stage');
         const startBtn = document.getElementById('startBtn');
-        const editBtn = document.getElementById('editBtn');
-        const resetBtn = document.getElementById('resetBtn');
         const playerPanelTitle = document.getElementById('playerPanelTitle');
         const captainStatus = document.getElementById('captainStatus');
         const setupNotice = document.getElementById('setupNotice');
@@ -653,7 +656,7 @@
         async function initOnlineRoom() {
             if (!firebaseIsConfigured) {
                 setupNotice.classList.add('visible');
-                setupNotice.textContent = 'Firebase ще не повністю підключений.';
+                setupNotice.textContent = 'Firebase ще не повністю підключений. Перевір firebaseConfig і додай databaseURL з Realtime Database.';
                 render();
                 return;
             }
@@ -684,24 +687,16 @@
 
         function render() {
             isRendering = true;
-            const isEditor = role === 'editor';
-            
             mainBody.classList.toggle('game-active', state.isGameMode);
-            mainBody.classList.toggle('editor-active', isEditor);
+            mainBody.classList.toggle('editor-active', role === 'editor');
             stage.classList.toggle('captain', role === 'captain');
             playerPanel.classList.toggle('hidden', role === 'captain');
             captainPanel.classList.toggle('visible', role === 'captain');
-
-            // Керування видимістю кнопок меню залежно від ролі
-            startBtn.style.display = (state.isGameMode || !isEditor) ? 'none' : 'inline-flex';
-            editBtn.style.display = isEditor ? 'inline-flex' : 'none';
-            resetBtn.style.display = isEditor ? 'inline-flex' : 'none';
-
+            startBtn.style.display = state.isGameMode ? 'none' : 'inline-flex';
             document.getElementById('playerRoleBtn').classList.toggle('active', role === 'player');
             document.getElementById('editorRoleBtn').classList.toggle('active', role === 'editor');
             document.getElementById('captainRoleBtn').classList.toggle('active', role === 'captain');
-            
-            playerPanelTitle.style.display = isEditor ? 'block' : 'none';
+            playerPanelTitle.style.display = role === 'editor' ? 'block' : 'none';
             captainStatus.textContent = `${state.cards.filter(card => card.revealed).length}/25 зіграно`;
 
             grid.innerHTML = '';
@@ -724,25 +719,22 @@
             input.type = 'text';
             input.value = cardData.word;
             input.placeholder = '...';
-            // Тільки Редактор може змінювати текст і тільки в режимі налаштування
-            input.disabled = state.isGameMode || role !== 'editor' || !firebaseIsConfigured;
-            
+            input.disabled = state.isGameMode || !firebaseIsConfigured;
             input.addEventListener('click', event => event.stopPropagation());
             input.addEventListener('input', () => {
-                if (role !== 'editor') return;
                 state.cards[index].word = input.value;
                 queueWordSave(index, input.value);
             });
 
             card.appendChild(input);
             card.addEventListener('click', () => {
-                if (!firebaseIsConfigured || role !== 'editor') return;
+                if (!firebaseIsConfigured) return;
 
                 if (!state.isGameMode) {
                     updateCard(index, {
                         colorIndex: (state.cards[index].colorIndex + 1) % colors.length
                     });
-                } else if (state.cards[index].word.trim()) {
+                } else if (role === 'editor' && state.cards[index].word.trim()) {
                     updateCard(index, { revealed: true });
                 }
             });
@@ -762,7 +754,7 @@
         }
 
         function queueWordSave(index, word) {
-            if (!firebaseIsConfigured || isRendering || role !== 'editor') return;
+            if (!firebaseIsConfigured || isRendering) return;
             clearTimeout(wordSaveTimers[index]);
             wordSaveTimers[index] = setTimeout(() => {
                 updateCard(index, { word });
@@ -770,7 +762,7 @@
         }
 
         async function updateCard(index, patch) {
-            if (!roomRef || role !== 'editor') return;
+            if (!roomRef) return;
 
             const updates = {};
             Object.entries(patch).forEach(([key, value]) => {
@@ -782,7 +774,7 @@
         }
 
         async function handleStart() {
-            if (!roomRef || role !== 'editor') return;
+            if (!roomRef) return;
             await firebaseApi.update(roomRef, {
                 isGameMode: true,
                 updatedAt: serverTimestamp()
@@ -790,7 +782,7 @@
         }
 
         async function enableEditor() {
-            if (!roomRef || role !== 'editor') return;
+            if (!roomRef) return;
 
             const updates = {
                 isGameMode: false,
@@ -804,7 +796,7 @@
         }
 
         async function resetGame() {
-            if (!roomRef || role !== 'editor' || !confirm('Скинути кімнату?')) return;
+            if (!roomRef || !confirm('Скинути кімнату?')) return;
 
             await firebaseApi.set(roomRef, {
                 ...createEmptyState(),
