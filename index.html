@@ -901,19 +901,21 @@
             startBtn.disabled = !isEditor || (state.isGameMode && !editorIsEditing);
 
             if (editorIsEditing) {
-                modeStatus.textContent = state.isGameMode ? 'Редагування під час гри' : 'Редагування поля';
+                modeStatus.style.display = state.isGameMode ? 'none' : 'flex';
+                modeStatus.textContent = 'Редагування поля';
                 editBtn.textContent = 'Редагування увімкнено';
                 startBtn.textContent = state.isGameMode ? 'Зберегти і показати гравцям' : 'Зберегти і почати гру';
                 return;
             }
 
             if (state.isGameMode) {
-                modeStatus.textContent = 'Гра йде';
+                modeStatus.style.display = 'none';
                 editBtn.textContent = 'Редагувати під час гри';
-                startBtn.textContent = 'Гра вже йде';
+                startBtn.style.display = 'none';
                 return;
             }
 
+            modeStatus.style.display = 'flex';
             modeStatus.textContent = 'Гра ще не почалась';
             editBtn.textContent = 'Редагувати поле';
             startBtn.textContent = 'Почати гру';
