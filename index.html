@@ -454,6 +454,10 @@
             pointer-events: none;
         }
 
+        .game-active.editing-active .player-grid .card input {
+            pointer-events: auto;
+        }
+
         .game-active .player-grid .card.revealed.red {
             background: linear-gradient(135deg, #ff4b2b, #ff416c);
             box-shadow: 0 0 24px rgba(255, 75, 43, 0.36);
@@ -809,6 +813,7 @@
             isRendering = true;
             mainBody.classList.toggle('game-active', state.isGameMode);
             mainBody.classList.toggle('editor-active', role === 'editor');
+            mainBody.classList.toggle('editing-active', role === 'editor' && editorIsEditing);
             stage.classList.toggle('captain', role === 'captain');
             playerPanel.classList.toggle('hidden', role === 'captain');
             captainPanel.classList.toggle('visible', role === 'captain');
