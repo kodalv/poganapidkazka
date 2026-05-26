@@ -23,7 +23,8 @@
 
         html,
         body {
-            min-height: 100%;
+            width: 100%;
+            height: 100%;
             margin: 0;
         }
 
@@ -35,6 +36,7 @@
             color: white;
             font-family: 'Inter', sans-serif;
             padding: 20px;
+            overflow: hidden;
         }
 
         button,
@@ -68,11 +70,12 @@
         }
 
         .app {
-            width: min(1180px, 100%);
+            width: 100%;
+            height: calc(100vh - 40px);
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            justify-content: center;
         }
 
         .panel,
@@ -84,13 +87,17 @@
         }
 
         .brand {
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 8px;
             min-height: 132px;
             text-align: center;
+        }
+
+        .brand h1 {
+            display: none;
         }
 
         h1 {
@@ -208,6 +215,22 @@
             text-transform: uppercase;
         }
 
+        .mode-status {
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.055);
+            color: #d6daea;
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
         .primary {
             background: linear-gradient(135deg, #45cfff, #4f83e8);
             border: none;
@@ -215,12 +238,20 @@
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 10px 26px rgba(0, 145, 255, 0.22);
         }
 
+        .active-state {
+            background: rgba(96, 255, 184, 0.18);
+            border-color: rgba(96, 255, 184, 0.42);
+            color: #a7ffd4;
+            opacity: 1;
+        }
+
         .danger {
             color: #ffb4a8;
         }
 
         .role-switch,
-        .link-switch {
+        .link-switch,
+        .json-switch {
             display: inline-flex;
             width: 100%;
             border: 1px solid var(--glass-border);
@@ -231,7 +262,8 @@
         }
 
         .role-switch button,
-        .link-switch button {
+        .link-switch button,
+        .json-switch button {
             flex: 1;
             height: 49px;
             width: auto;
@@ -252,13 +284,20 @@
             letter-spacing: 0.01em;
         }
 
+        .json-switch button {
+            height: 38px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
         .link-switch button.copied {
             background: rgba(96, 255, 184, 0.18);
             color: #a7ffd4;
         }
 
         .role-switch button + button,
-        .link-switch button + button {
+        .link-switch button + button,
+        .json-switch button + button {
             border-left: 1px solid var(--glass-border);
         }
 
@@ -282,7 +321,8 @@
         .stage {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: 18px;
+            flex: 1;
+            min-height: 0;
             min-width: 0;
         }
 
@@ -292,6 +332,7 @@
 
         .panel {
             min-width: 0;
+            min-height: 0;
             padding: 16px;
         }
 
@@ -318,8 +359,11 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-rows: repeat(5, minmax(0, 1fr));
             gap: 10px;
+            height: 100%;
             min-width: 0;
+            min-height: 0;
         }
 
         .card,
@@ -335,7 +379,6 @@
         }
 
         .card {
-            aspect-ratio: 1.55 / 1;
             min-height: 0;
             background: var(--glass);
             padding: clamp(4px, 1vw, 8px);
@@ -355,11 +398,17 @@
             font-weight: 700;
             text-transform: uppercase;
             overflow-wrap: anywhere;
-            line-height: 1.12;
+            white-space: nowrap;
+            line-height: 1;
         }
 
         .card input {
-            font-size: clamp(0.82rem, 1.4vw, 1.05rem);
+            font-size: clamp(1rem, 1.9vw, 1.5rem);
+        }
+
+        .card input:disabled {
+            opacity: 1;
+            -webkit-text-fill-color: currentColor;
         }
 
         .card.red,
@@ -429,6 +478,45 @@
             box-shadow: 0 0 28px rgba(255, 0, 0, 0.42);
         }
 
+        .editor-active .player-grid .card.red {
+            background: rgba(255, 75, 43, 0.28);
+            border-color: var(--red);
+        }
+
+        .editor-active .player-grid .card.blue {
+            background: rgba(0, 210, 255, 0.28);
+            border-color: var(--blue);
+        }
+
+        .editor-active .player-grid .card.neutral {
+            background: rgba(224, 224, 224, 0.48);
+            border-color: var(--neutral);
+        }
+
+        .editor-active .player-grid .card.neutral input {
+            color: #111;
+        }
+
+        .editor-active .player-grid .card.black {
+            background: rgba(0, 0, 0, 0.76);
+            border-color: var(--red);
+        }
+
+        .editor-active .player-grid .card.played {
+            opacity: 0.48;
+            filter: grayscale(0.25);
+        }
+
+        .editor-active .player-grid .card.played input {
+            text-decoration: line-through;
+            text-decoration-thickness: 3px;
+            text-decoration-color: rgba(255, 255, 255, 0.88);
+        }
+
+        .editor-active .player-grid .card.played.neutral input {
+            text-decoration-color: rgba(0, 0, 0, 0.72);
+        }
+
         .captain-panel {
             display: none;
         }
@@ -447,23 +535,21 @@
         }
 
         .captain-card {
-            aspect-ratio: 1.18 / 1;
             min-height: 0;
             padding: 5px;
         }
 
         .stage.captain .captain-card {
-            aspect-ratio: 1.55 / 1;
             padding: clamp(4px, 1vw, 8px);
         }
 
         .captain-card span {
-            font-size: 0.72rem;
-            line-height: 1.15;
+            font-size: clamp(0.92rem, 1.55vw, 1.25rem);
+            line-height: 1;
         }
 
         .stage.captain .captain-card span {
-            font-size: clamp(0.82rem, 1.4vw, 1.05rem);
+            font-size: clamp(1rem, 1.9vw, 1.5rem);
         }
 
         .captain-card.played {
@@ -506,6 +592,10 @@
                 padding: 12px;
             }
 
+            .app {
+                height: calc(100vh - 24px);
+            }
+
             .brand {
                 align-items: center;
                 min-height: 104px;
@@ -527,7 +617,7 @@
             }
 
             .card input {
-                font-size: 0.7rem;
+                font-size: clamp(0.8rem, 2.6vw, 1rem);
             }
         }
     </style>
@@ -547,10 +637,17 @@
                     <button id="editorRoleBtn" type="button" onclick="setRole('editor')">Редактор</button>
                     <button id="captainRoleBtn" type="button" onclick="setRole('captain')">Капітан</button>
                 </div>
+                <div class="mode-status" id="modeStatus"></div>
                 
                 <button class="primary" id="startBtn" type="button" onclick="handleStart()">Почати гру</button>
                 <button id="editBtn" type="button" onclick="enableEditor()">Редагувати</button>
                 
+                <div class="json-switch" id="jsonTools" aria-label="JSON">
+                    <button type="button" onclick="downloadBoardJson()">Зберегти JSON</button>
+                    <button type="button" onclick="uploadBoardJson()">Підвантажити JSON</button>
+                </div>
+                <input id="jsonFileInput" type="file" accept="application/json,.json" hidden>
+
                 <div class="link-switch" aria-label="Копіювати лінк">
                     <button type="button" onclick="copyRoomLink('player', this)">Лінк гравця</button>
                     <button type="button" onclick="copyRoomLink('editor', this)">Лінк редактора</button>
@@ -600,15 +697,20 @@
         const startBtn = document.getElementById('startBtn');
         const editBtn = document.getElementById('editBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const jsonTools = document.getElementById('jsonTools');
+        const jsonFileInput = document.getElementById('jsonFileInput');
+        const modeStatus = document.getElementById('modeStatus');
         const setupNotice = document.getElementById('setupNotice');
 
         let db = null;
         let roomRef = null;
         let state = createEmptyState();
         let isRendering = false;
+        let editorIsEditing = false;
         let wordSaveTimers = {};
         let serverTimestamp = () => Date.now();
         let firebaseApi = null;
+        let measureContext = null;
 
         window.handleStart = handleStart;
         window.enableEditor = enableEditor;
@@ -616,6 +718,8 @@
         window.setRole = setRole;
         window.copyRoomLink = copyRoomLink;
         window.toggleMenu = toggleMenu;
+        window.downloadBoardJson = downloadBoardJson;
+        window.uploadBoardJson = uploadBoardJson;
 
         function createEmptyState() {
             return {
@@ -625,23 +729,40 @@
                     word: '',
                     colorIndex: 0,
                     revealed: false
-                }))
+                })),
+                draftCards: null
             };
         }
 
         function normalizeState(nextState = {}) {
             const fallback = createEmptyState();
-            const cards = Array.isArray(nextState.cards) ? nextState.cards : [];
+            const cards = normalizeCards(nextState.cards, fallback.cards);
+            const draftCards = Array.isArray(nextState.draftCards) ? normalizeCards(nextState.draftCards, cards) : null;
 
             return {
                 isGameMode: Boolean(nextState.isGameMode),
                 updatedAt: nextState.updatedAt || Date.now(),
-                cards: fallback.cards.map((card, index) => ({
-                    word: String(cards[index]?.word || card.word),
-                    colorIndex: Math.max(0, Math.min(colors.length - 1, Number(cards[index]?.colorIndex || 0))),
-                    revealed: Boolean(cards[index]?.revealed)
-                }))
+                cards,
+                draftCards
             };
+        }
+
+        function normalizeCards(cards = [], fallbackCards = []) {
+            const fallback = fallbackCards.length ? fallbackCards : createEmptyState().cards;
+
+            return fallback.map((card, index) => ({
+                word: String(cards[index]?.word ?? card.word),
+                colorIndex: Math.max(0, Math.min(colors.length - 1, Number(cards[index]?.colorIndex ?? card.colorIndex))),
+                revealed: Boolean(cards[index]?.revealed ?? card.revealed)
+            }));
+        }
+
+        function getEditorCards() {
+            return editorIsEditing ? (state.draftCards || state.cards) : state.cards;
+        }
+
+        function getVisibleCards() {
+            return role === 'editor' ? getEditorCards() : state.cards;
         }
 
         function roomPath() {
@@ -681,6 +802,10 @@
         }
 
         function render() {
+            const activeInput = document.activeElement?.dataset?.cardIndex;
+            const selectionStart = document.activeElement?.selectionStart;
+            const selectionEnd = document.activeElement?.selectionEnd;
+
             isRendering = true;
             mainBody.classList.toggle('game-active', state.isGameMode);
             mainBody.classList.toggle('editor-active', role === 'editor');
@@ -689,9 +814,7 @@
             captainPanel.classList.toggle('visible', role === 'captain');
             
             // Ховаємо або показуємо кнопки управління грою залежно від ролі
-            startBtn.style.display = (state.isGameMode || role !== 'editor') ? 'none' : 'inline-flex';
-            editBtn.style.display = (role === 'editor') ? 'inline-flex' : 'none';
-            resetBtn.style.display = (role === 'editor') ? 'inline-flex' : 'none';
+            updateEditorControls();
 
             document.getElementById('playerRoleBtn').classList.toggle('active', role === 'player');
             document.getElementById('editorRoleBtn').classList.toggle('active', role === 'editor');
@@ -700,29 +823,46 @@
             grid.innerHTML = '';
             captainGrid.innerHTML = '';
 
-            state.cards.forEach((card, index) => {
+            getVisibleCards().forEach((card, index) => {
                 grid.appendChild(createPlayerCard(card, index));
+            });
+
+            state.cards.forEach(card => {
                 captainGrid.appendChild(createCaptainCard(card));
             });
 
             isRendering = false;
+            fitAllCardText();
+
+            if (role === 'editor' && editorIsEditing && activeInput !== undefined) {
+                const nextInput = grid.querySelector(`input[data-card-index="${activeInput}"]`);
+                if (nextInput && !nextInput.disabled) {
+                    nextInput.focus();
+                    nextInput.setSelectionRange(selectionStart ?? nextInput.value.length, selectionEnd ?? nextInput.value.length);
+                }
+            }
         }
 
         function createPlayerCard(cardData, index) {
             const card = document.createElement('div');
             card.className = `card ${colors[cardData.colorIndex]}`;
             if (cardData.revealed) card.classList.add('revealed');
+            if (role === 'editor' && cardData.revealed) card.classList.add('played');
 
             const input = document.createElement('input');
             input.type = 'text';
             input.value = cardData.word;
             input.placeholder = '...';
             // Тільки Редактор може вводити текст
-            input.disabled = state.isGameMode || role !== 'editor' || !firebaseIsConfigured;
+            input.dataset.cardIndex = index;
+            input.disabled = role !== 'editor' || !editorIsEditing || !firebaseIsConfigured;
             input.addEventListener('click', event => event.stopPropagation());
             input.addEventListener('input', () => {
                 if (role !== 'editor') return; // Перевірка безпеки
-                state.cards[index].word = input.value;
+                if (!editorIsEditing) return;
+                ensureLocalDraftCards();
+                state.draftCards[index].word = input.value;
+                fitTextElement(input);
                 queueWordSave(index, input.value);
             });
 
@@ -730,9 +870,14 @@
             card.addEventListener('click', () => {
                 if (!firebaseIsConfigured || role !== 'editor') return; // Кліки працюють тільки для Редактора
 
-                if (!state.isGameMode) {
-                    updateCard(index, {
-                        colorIndex: (state.cards[index].colorIndex + 1) % colors.length
+                if (editorIsEditing) {
+                    ensureLocalDraftCards();
+                    const nextColorIndex = (state.draftCards[index].colorIndex + 1) % colors.length;
+                    state.draftCards[index].colorIndex = nextColorIndex;
+                    card.className = `card ${colors[nextColorIndex]}`;
+                    if (state.draftCards[index].revealed) card.classList.add('revealed', 'played');
+                    updateDraftCard(index, {
+                        colorIndex: nextColorIndex
                     });
                 } else if (role === 'editor' && state.cards[index].word.trim()) {
                     updateCard(index, { revealed: true });
@@ -740,6 +885,39 @@
             });
 
             return card;
+        }
+
+        function updateEditorControls() {
+            const isEditor = role === 'editor';
+            const display = isEditor ? 'inline-flex' : 'none';
+
+            startBtn.style.display = display;
+            editBtn.style.display = display;
+            resetBtn.style.display = display;
+            jsonTools.style.display = display;
+            modeStatus.style.display = isEditor ? 'flex' : 'none';
+
+            editBtn.classList.toggle('active-state', editorIsEditing);
+            editBtn.disabled = !isEditor || editorIsEditing;
+            startBtn.disabled = !isEditor || (state.isGameMode && !editorIsEditing);
+
+            if (editorIsEditing) {
+                modeStatus.textContent = state.isGameMode ? 'Редагування під час гри' : 'Редагування поля';
+                editBtn.textContent = 'Редагування увімкнено';
+                startBtn.textContent = state.isGameMode ? 'Зберегти і показати гравцям' : 'Зберегти і почати гру';
+                return;
+            }
+
+            if (state.isGameMode) {
+                modeStatus.textContent = 'Гра йде';
+                editBtn.textContent = 'Редагувати під час гри';
+                startBtn.textContent = 'Гра вже йде';
+                return;
+            }
+
+            modeStatus.textContent = 'Гра ще не почалась';
+            editBtn.textContent = 'Редагувати поле';
+            startBtn.textContent = 'Почати гру';
         }
 
         function createCaptainCard(cardData) {
@@ -753,11 +931,23 @@
             return card;
         }
 
+        function cloneCards(cards) {
+            return cards.map(card => ({ ...card }));
+        }
+
+        function ensureLocalDraftCards() {
+            if (!state.draftCards) {
+                state.draftCards = cloneCards(state.cards);
+            }
+        }
+
         function queueWordSave(index, word) {
             if (!firebaseIsConfigured || isRendering) return;
+            ensureLocalDraftCards();
+            state.draftCards[index].word = word;
             clearTimeout(wordSaveTimers[index]);
             wordSaveTimers[index] = setTimeout(() => {
-                updateCard(index, { word });
+                updateDraftCard(index, { word });
             }, 220);
         }
 
@@ -773,10 +963,30 @@
             await firebaseApi.update(roomRef, updates);
         }
 
+        async function updateDraftCard(index, patch) {
+            if (!roomRef) return;
+
+            const updates = {};
+            Object.entries(patch).forEach(([key, value]) => {
+                updates[`draftCards/${index}/${key}`] = value;
+            });
+            updates.updatedAt = serverTimestamp();
+
+            await firebaseApi.update(roomRef, updates);
+        }
+
         async function handleStart() {
             if (!roomRef || role !== 'editor') return; // Запуск гри тільки для Редактора
+            const cardsToPublish = cloneCards(state.draftCards || state.cards).map(card => ({
+                ...card,
+                revealed: state.isGameMode ? Boolean(card.revealed) : false
+            }));
+
+            editorIsEditing = false;
             await firebaseApi.update(roomRef, {
                 isGameMode: true,
+                cards: cardsToPublish,
+                draftCards: null,
                 updatedAt: serverTimestamp()
             });
         }
@@ -784,15 +994,13 @@
         async function enableEditor() {
             if (!roomRef || role !== 'editor') return; // Повернення до редагування тільки для Редактора
 
-            const updates = {
-                isGameMode: false,
+            editorIsEditing = true;
+            state.draftCards = cloneCards(state.cards);
+            await firebaseApi.update(roomRef, {
+                draftCards: state.draftCards,
                 updatedAt: serverTimestamp()
-            };
-            state.cards.forEach((_, index) => {
-                updates[`cards/${index}/revealed`] = false;
             });
-
-            await firebaseApi.update(roomRef, updates);
+            render();
         }
 
         async function resetGame() {
@@ -804,8 +1012,74 @@
             });
         }
 
+        function downloadBoardJson() {
+            if (role !== 'editor') return;
+
+            const payload = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                cards: cloneCards(getEditorCards()).map(card => ({
+                    word: card.word,
+                    colorIndex: card.colorIndex,
+                    revealed: Boolean(card.revealed)
+                }))
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `poganapidkazka-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(link.href);
+        }
+
+        function uploadBoardJson() {
+            if (role !== 'editor') return;
+
+            jsonFileInput.value = '';
+            jsonFileInput.click();
+        }
+
+        async function handleJsonFileChange(event) {
+            const file = event.target.files?.[0];
+            if (!file || role !== 'editor') return;
+
+            try {
+                const payload = JSON.parse(await file.text());
+                const importedCards = normalizeImportedCards(payload);
+
+                editorIsEditing = true;
+                state.draftCards = importedCards;
+
+                if (roomRef) {
+                    await firebaseApi.update(roomRef, {
+                        draftCards: importedCards,
+                        updatedAt: serverTimestamp()
+                    });
+                }
+
+                render();
+            } catch (error) {
+                alert(`Не вдалося підвантажити JSON: ${error.message}`);
+            }
+        }
+
+        function normalizeImportedCards(payload) {
+            const imported = Array.isArray(payload)
+                ? payload
+                : (Array.isArray(payload?.cards) ? payload.cards : payload?.draftCards);
+
+            if (!Array.isArray(imported)) {
+                throw new Error('у файлі немає масиву cards');
+            }
+
+            return normalizeCards(imported, createEmptyState().cards);
+        }
+
         function setRole(nextRole) {
             role = nextRole;
+            if (role !== 'editor') editorIsEditing = false;
             params.set('role', role);
             history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
             render();
@@ -843,6 +1117,33 @@
             }, 1200);
         }
 
+        function fitAllCardText() {
+            document.querySelectorAll('.card input, .captain-card span').forEach(fitTextElement);
+        }
+
+        function fitTextElement(element) {
+            const text = (element.value ?? element.textContent ?? '').trim().toUpperCase();
+            const parent = element.parentElement;
+            if (!parent || !text) {
+                element.style.fontSize = '';
+                return;
+            }
+
+            const styles = getComputedStyle(element);
+            const maxSize = Math.min(parent.clientHeight * 0.38, parent.clientWidth * 0.16, 24);
+            const minSize = 8;
+            const availableWidth = Math.max(20, (element.clientWidth || parent.clientWidth) - 6);
+            measureContext ||= document.createElement('canvas').getContext('2d');
+            measureContext.font = `${styles.fontWeight} ${maxSize}px ${styles.fontFamily}`;
+
+            const measuredWidth = measureContext.measureText(text).width;
+            const fittedSize = measuredWidth > availableWidth
+                ? Math.max(minSize, Math.floor(maxSize * availableWidth / measuredWidth))
+                : maxSize;
+
+            element.style.fontSize = `${fittedSize}px`;
+        }
+
         document.addEventListener('click', event => {
             if (!adminMenu.classList.contains('open')) return;
             if (adminMenu.contains(event.target)) return;
@@ -854,6 +1155,8 @@
                 adminMenu.classList.remove('open');
             }
         });
+
+        jsonFileInput.addEventListener('change', handleJsonFileChange);
 
         initOnlineRoom().catch(error => {
             setupNotice.classList.add('visible');
