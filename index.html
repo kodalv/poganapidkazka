@@ -704,8 +704,10 @@
         let roomRef = null;
         let state = createEmptyState();
         let isRendering = false;
+        let hasRendered = false;
         let editorIsEditing = false;
         let wordSaveTimers = {};
+        let pendingWordValues = {};
         let serverTimestamp = () => Date.now();
         let firebaseApi = null;
         let measureContext = null;
@@ -794,7 +796,15 @@
             }
 
             firebaseApi.onValue(roomRef, snapshotValue => {
-                state = normalizeState(snapshotValue.val());
+                const nextState = normalizeState(snapshotValue.val());
+                reconcilePendingWords(nextState);
+
+                if (hasRendered && !stateNeedsRender(state, nextState)) {
+                    state = nextState;
+                    return;
+                }
+
+                state = nextState;
                 render();
             });
         }
@@ -840,6 +850,8 @@
                     nextInput.setSelectionRange(selectionStart ?? nextInput.value.length, selectionEnd ?? nextInput.value.length);
                 }
             }
+
+            hasRendered = true;
         }
 
         function createPlayerCard(cardData, index) {
@@ -946,10 +958,69 @@
             if (!firebaseIsConfigured || isRendering) return;
             ensureLocalDraftCards();
             state.draftCards[index].word = word;
+            pendingWordValues[index] = word;
             clearTimeout(wordSaveTimers[index]);
-            wordSaveTimers[index] = setTimeout(() => {
-                updateDraftCard(index, { word });
-            }, 220);
+            wordSaveTimers[index] = setTimeout(async () => {
+                try {
+                    await updateDraftCard(index, { word });
+                } catch (error) {
+                    console.error('Draft word save failed', error);
+                } finally {
+                    delete wordSaveTimers[index];
+                }
+            }, 420);
+        }
+
+        function reconcilePendingWords(nextState) {
+            if (!editorIsEditing) {
+                pendingWordValues = {};
+                return;
+            }
+
+            if (!nextState.draftCards) {
+                nextState.draftCards = cloneCards(nextState.cards);
+            }
+
+            Object.entries(pendingWordValues).forEach(([index, word]) => {
+                const cardIndex = Number(index);
+                if (!nextState.draftCards[cardIndex]) return;
+
+                if (nextState.draftCards[cardIndex].word === word) {
+                    delete pendingWordValues[index];
+                    return;
+                }
+
+                nextState.draftCards[cardIndex].word = word;
+            });
+        }
+
+        function stateNeedsRender(previousState, nextState) {
+            return previousState.isGameMode !== nextState.isGameMode
+                || !cardsAreEqual(previousState.cards, nextState.cards)
+                || !optionalCardsAreEqual(previousState.draftCards, nextState.draftCards);
+        }
+
+        function optionalCardsAreEqual(firstCards, secondCards) {
+            if (!firstCards || !secondCards) return firstCards === secondCards;
+            return cardsAreEqual(firstCards, secondCards);
+        }
+
+        function cardsAreEqual(firstCards = [], secondCards = []) {
+            if (firstCards.length !== secondCards.length) return false;
+
+            return firstCards.every((card, index) => {
+                const nextCard = secondCards[index];
+                return nextCard
+                    && card.word === nextCard.word
+                    && card.colorIndex === nextCard.colorIndex
+                    && card.revealed === nextCard.revealed;
+            });
+        }
+
+        function clearPendingWordSaves() {
+            Object.values(wordSaveTimers).forEach(clearTimeout);
+            wordSaveTimers = {};
+            pendingWordValues = {};
         }
 
         async function updateCard(index, patch) {
@@ -984,6 +1055,7 @@
             }));
 
             editorIsEditing = false;
+            clearPendingWordSaves();
             await firebaseApi.update(roomRef, {
                 isGameMode: true,
                 cards: cardsToPublish,
@@ -996,6 +1068,7 @@
             if (!roomRef || role !== 'editor') return; // Повернення до редагування тільки для Редактора
 
             editorIsEditing = true;
+            clearPendingWordSaves();
             state.draftCards = cloneCards(state.cards);
             await firebaseApi.update(roomRef, {
                 draftCards: state.draftCards,
@@ -1007,6 +1080,7 @@
         async function resetGame() {
             if (!roomRef || role !== 'editor' || !confirm('Скинути кімнату?')) return; // Скидання тільки для Редактора
 
+            clearPendingWordSaves();
             await firebaseApi.set(roomRef, {
                 ...createEmptyState(),
                 updatedAt: serverTimestamp()
@@ -1051,6 +1125,7 @@
                 const importedCards = normalizeImportedCards(payload);
 
                 editorIsEditing = true;
+                clearPendingWordSaves();
                 state.draftCards = importedCards;
 
                 if (roomRef) {
@@ -1080,7 +1155,10 @@
 
         function setRole(nextRole) {
             role = nextRole;
-            if (role !== 'editor') editorIsEditing = false;
+            if (role !== 'editor') {
+                editorIsEditing = false;
+                clearPendingWordSaves();
+            }
             params.set('role', role);
             history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
             render();
@@ -1131,19 +1209,26 @@
             }
 
             const styles = getComputedStyle(element);
-            const maxSize = Math.min(parent.clientHeight * 0.38, parent.clientWidth * 0.16, 24);
+            const maxSize = Math.min(parent.clientHeight * 0.38, parent.clientWidth * 0.16, 24) + 2;
             const minSize = 8;
             const availableWidth = Math.max(20, (element.clientWidth || parent.clientWidth) - 6);
             measureContext ||= document.createElement('canvas').getContext('2d');
             measureContext.font = `${styles.fontWeight} ${maxSize}px ${styles.fontFamily}`;
 
+            const targetWidth = Math.min(
+                availableWidth,
+                measureContext.measureText('ПІДКАЗКА').width
+            );
             const measuredWidth = measureContext.measureText(text).width;
-            const fittedSize = measuredWidth > availableWidth
-                ? Math.max(minSize, Math.floor(maxSize * availableWidth / measuredWidth))
+            const fittedSize = measuredWidth > targetWidth
+                ? Math.max(minSize, Math.floor(maxSize * targetWidth / measuredWidth))
                 : maxSize;
 
             element.style.fontSize = `${fittedSize}px`;
         }
+
+        window.addEventListener('resize', fitAllCardText);
+        document.fonts?.ready.then(fitAllCardText);
 
         document.addEventListener('click', event => {
             if (!adminMenu.classList.contains('open')) return;
